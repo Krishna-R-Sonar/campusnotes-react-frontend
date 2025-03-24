@@ -15,7 +15,7 @@ export default function NoteDetailsPage() {
 
   const fetchFileUrl = useCallback(async () => {
     try {
-      const res = await fetch(`/api/notes/${id}/file`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/notes/${id}/purchase`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
       if (!res.ok) {
