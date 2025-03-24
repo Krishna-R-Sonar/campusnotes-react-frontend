@@ -7,7 +7,7 @@ import { useState } from 'react';
 const schema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters'),
   description: z.string().optional(), // New description field
-  price: z.number().min(15, 'Price must be at least 15 credits').max(20, 'Price cannot exceed 20 credits'),
+  price: z.number().positive('Price must be a positive number'),
   file: z.any()
     .refine((value) => value instanceof FileList && value.length > 0, { message: 'File is required' })
     .refine((value) => value[0].type === 'application/pdf', { message: 'Only PDF files are allowed' }),
@@ -78,7 +78,7 @@ export default function NoteUploadForm() {
         {errors.description && <span className="text-red-600">{errors.description.message}</span>}
       </div>
       <div>
-        <label className="block text-sm font-medium">Price (15-20 credits)</label>
+        <label className="block text-sm font-medium">Price (in credits)</label>
         <input
           type="number"
           {...register('price', { valueAsNumber: true })}
