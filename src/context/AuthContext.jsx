@@ -15,6 +15,7 @@ export const AuthProvider = ({ children }) => {
         setUser(decoded);
       } catch (error) {
         console.error('Invalid token:', error);
+        localStorage.removeItem('token');
       }
     }
   }, []);
@@ -47,9 +48,13 @@ export const AuthProvider = ({ children }) => {
           setUser(data); // Update user with latest data, including credits
         } else {
           console.error('Failed to refresh user data');
+          localStorage.removeItem('token');
+          setUser(null);
         }
       } catch (error) {
         console.error('Error refreshing user data:', error);
+        localStorage.removeItem('token');
+        setUser(null);
       }
     }
   };
