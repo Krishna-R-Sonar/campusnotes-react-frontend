@@ -8,7 +8,7 @@ export default function TransactionHistory() {
   useEffect(() => {
     async function fetchTransactions() {
       try {
-        const res = await fetch('/api/transactions/history', {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/transactions/history`, {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
         });
         if (!res.ok) throw new Error('Failed to fetch transactions');
