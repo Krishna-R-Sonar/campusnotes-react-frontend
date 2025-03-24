@@ -15,7 +15,7 @@ export default function NoteDetailsPage() {
 
   const fetchFileUrl = useCallback(async () => {
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/notes/${id}/purchase`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/notes/${id}/file`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
       if (!res.ok) {
@@ -31,7 +31,7 @@ export default function NoteDetailsPage() {
 
   const fetchNote = useCallback(async () => {
     try {
-      const res = await fetch(`/api/notes/${id}`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/notes/${id}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
       if (!res.ok) throw new Error('Failed to fetch note');
@@ -57,7 +57,7 @@ export default function NoteDetailsPage() {
       return;
     }
     try {
-      const res = await fetch(`/api/notes/${id}/purchase`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/notes/${id}/purchase`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`,
