@@ -37,7 +37,7 @@ export default function NoteUploadForm() {
         console.log(`${key}:`, value);
       }
 
-      const response = await fetch('/api/notes/upload', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/notes/upload`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
         body: formData,
