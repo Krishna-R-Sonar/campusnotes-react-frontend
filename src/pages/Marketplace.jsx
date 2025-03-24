@@ -10,7 +10,9 @@ export default function MarketplacePage() {
   useEffect(() => {
     async function fetchNotes() {
       try {
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/notes`);
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/notes`, {
+        headers: {Authorization: `Bearer ${localStorage.getItem('token')}`},
+        });
         if (!res.ok) throw new Error('Failed to fetch notes');
         const data = await res.json();
         setNotes(data);
