@@ -1,0 +1,60 @@
+// campus-notes-vite/src/pages/auth/ResetPassword.jsx
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+
+const schema = z.object({
+  password: z.string().min(6),
+});
+
+export default function ResetPasswordPage() {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const token = searchParams.get('token');
+  const { register, handleSubmit, formState: { errors } } = useForm({
+    resolver: zodResolver(schema),
+  });
+
+  const onSubmit = async (data) => {
+    if (!token) return alert('Invalid reset link');
+    try {
+      const res = await fetch('/api/auth/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, password: data.password }),
+      });
+      if (res.ok) {
+        alert('Password reset successful');
+        navigate('/auth/login');
+      } else {
+        alert('Invalid or expired token');
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  return (
+    <div className="max-w-md mx-auto mt-10 bg-white p-8 rounded-lg shadow-md">
+      <h1 className="text-2xl font-bold mb-6">Reset Password</h1>
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        <div>
+          <label className="block text-sm font-medium">New Password</label>
+          <input
+            {...register('password')}
+            className="mt-1 block w-full rounded-md border p-2"
+            type="password"
+          />
+          {errors.password && <span className="text-red-600">{errors.password.message}</span>}
+        </div>
+        <button
+          type="submit"
+          className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700"
+        >
+          Reset Password
+        </button>
+      </form>
+    </div>
+  );
+}
