@@ -7,35 +7,7 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
 
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      try {
-        const decoded = jwtDecode(token);
-        setUser(decoded);
-      } catch (error) {
-        console.error('Invalid token:', error);
-        localStorage.removeItem('token');
-      }
-    }
-  }, []);
-
-  const login = (token) => {
-    localStorage.setItem('token', token);
-    try {
-      const decoded = jwtDecode(token);
-      setUser(decoded);
-    } catch (error) {
-      console.error('Failed to decode token:', error);
-    }
-  };
-
-  const logout = () => {
-    localStorage.removeItem('token');
-    setUser(null);
-  };
-
-  // Function to refresh user data, including credits
+  // Function to refresh user data from the server
   const refreshUser = async () => {
     const token = localStorage.getItem('token');
     if (token) {
@@ -45,7 +17,7 @@ export const AuthProvider = ({ children }) => {
         });
         if (res.ok) {
           const data = await res.json();
-          setUser(data); // Update user with latest data, including credits
+          setUser(data); // Update user state with latest data, including credits
         } else {
           console.error('Failed to refresh user data');
           localStorage.removeItem('token');
@@ -57,6 +29,33 @@ export const AuthProvider = ({ children }) => {
         setUser(null);
       }
     }
+  };
+
+  // On app load, fetch latest user data if token exists
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      refreshUser();
+    }
+  }, []); // Empty dependency array ensures this runs once on mount
+
+  const login = (token) => {
+    localStorage.setItem('token', token);
+    try {
+      const decoded = jwtDecode(token);
+      setUser(decoded);
+      // Optionally call refreshUser here to ensure latest data after login
+      refreshUser();
+    } catch (error) {
+      console.error('Failed to decode token:', error);
+      localStorage.removeItem('token');
+      setUser(null);
+    }
+  };
+
+  const logout = () => {
+    localStorage.removeItem('token');
+    setUser(null);
   };
 
   return (
