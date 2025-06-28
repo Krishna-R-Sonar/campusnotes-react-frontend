@@ -1,4 +1,4 @@
-// campus-notes-vite/src/components/AuthControls.jsx
+// campusnotes-react-frontend/src/components/AuthControls.jsx
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 

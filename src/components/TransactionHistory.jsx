@@ -1,4 +1,4 @@
-// campus-notes-vite/src/components/TransactionHistory.jsx
+// campusnotes-react-frontend/src/components/TransactionHistory.jsx
 import { useEffect, useState } from 'react';
 
 export default function TransactionHistory() {

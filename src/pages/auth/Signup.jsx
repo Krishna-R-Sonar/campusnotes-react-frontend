@@ -1,4 +1,4 @@
-// campus-notes-vite/src/pages/auth/Signup.jsx
+// campusnotes-react-frontend/src/pages/auth/Signup.jsx
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';

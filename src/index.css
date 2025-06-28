@@ -1,14 +1,16 @@
-/* campus-notes-vite/src/index.css */
+/* campusnotes-react-frontend/src/index.css */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Custom styles */
-.pdf-viewer canvas {
-  margin: 0 auto;
-  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+.question-form-spinner {
+  @apply animate-spin rounded-full h-5 w-5 border-2 border-gray-300 border-t-blue-600 inline-block align-middle;
 }
 
 .loading-spinner {
   @apply animate-spin rounded-full h-8 w-8 border-4 border-gray-300 border-t-blue-600;
+}
+
+.analysis-prompt {
+  @apply fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center;
 }

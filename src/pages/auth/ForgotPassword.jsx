@@ -1,4 +1,4 @@
-// campus-notes-vite/src/pages/auth/ForgotPassword.jsx
+// campusnotes-react-frontend/src/pages/auth/ForgotPassword.jsx
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';

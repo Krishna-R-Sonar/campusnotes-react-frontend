@@ -1,4 +1,4 @@
-// campus-notes-vite/src/context/AuthContext.jsx
+// campusnotes-react-frontend/src/context/AuthContext.jsx
 import React, { createContext, useState, useEffect } from 'react';
 import { jwtDecode } from 'jwt-decode';
 
@@ -7,7 +7,6 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
 
-  // Function to refresh user data from the server
   const refreshUser = async () => {
     const token = localStorage.getItem('token');
     if (token) {
@@ -17,7 +16,20 @@ export const AuthProvider = ({ children }) => {
         });
         if (res.ok) {
           const data = await res.json();
-          setUser(data); // Update user state with latest data, including credits
+          const decoded = jwtDecode(token);
+
+          // Fetch free analyses remaining from backend
+          const analysisRes = await fetch(`${import.meta.env.VITE_API_URL}/api/notes/analyze-limit`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          const analysisData = await analysisRes.json();
+
+          setUser({
+            ...decoded,
+            ...data,
+            freeAnalysesRemaining: analysisData.freeAnalysesRemaining || 3,
+            purchasedAnalysesRemaining: data.analysisPacks * 3 || 0,
+          });
         } else {
           console.error('Failed to refresh user data');
           localStorage.removeItem('token');
@@ -31,20 +43,18 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // On app load, fetch latest user data if token exists
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
       refreshUser();
     }
-  }, []); // Empty dependency array ensures this runs once on mount
+  }, []);
 
   const login = (token) => {
     localStorage.setItem('token', token);
     try {
       const decoded = jwtDecode(token);
       setUser(decoded);
-      // Optionally call refreshUser here to ensure latest data after login
       refreshUser();
     } catch (error) {
       console.error('Failed to decode token:', error);

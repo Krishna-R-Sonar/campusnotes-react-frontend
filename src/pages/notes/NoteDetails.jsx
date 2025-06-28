@@ -1,115 +1,163 @@
-// campus-notes-vite/src/pages/notes/NoteDetails.jsx
-import { useEffect, useState, useCallback } from 'react';
+// campusnotes-react-frontend/src/pages/notes/NoteDetails.jsx
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
+import { toast } from 'react-toastify';
+import PropTypes from 'prop-types';
+import { useApi } from '../../hooks/useApi';
+import QuestionForm from '../../components/QuestionForm';
 import SecureNoteViewer from '../../components/SecureNoteViewer';
 
-export default function NoteDetailsPage() {
+export default function NoteDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user, refreshUser } = useAuth(); // Destructure refreshUser
+  const { request } = useApi();
   const [note, setNote] = useState(null);
-  const [fileUrl, setFileUrl] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-
-  const fetchFileUrl = useCallback(async () => {
-    try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/notes/${id}/file`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-      });
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.error || 'Failed to fetch file URL');
-      }
-      const data = await res.json();
-      setFileUrl(data.fileUrl);
-    } catch (err) {
-      setError(err.message);
-    }
-  }, [id]);
-
-  const fetchNote = useCallback(async () => {
-    try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/notes/${id}`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-      });
-      if (!res.ok) throw new Error('Failed to fetch note');
-      const data = await res.json();
-      setNote(data);
-      if (data.hasAccess) {
-        await fetchFileUrl();
-      }
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  }, [id, fetchFileUrl]);
+  const [conversation, setConversation] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isPurchasing, setIsPurchasing] = useState(false);
+  const [pdfLoadFailed, setPdfLoadFailed] = useState(false);
+  const [fileUrl, setFileUrl] = useState('');
 
   useEffect(() => {
+    async function fetchNote() {
+      try {
+        const data = await request(`${import.meta.env.VITE_API_URL}/api/notes/${id}`);
+        setNote(data);
+        if (data.hasAccess) {
+          const fileResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/notes/${id}/file`, {
+            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+          });
+          if (fileResponse.ok) {
+            const fileData = await fileResponse.json();
+            setFileUrl(fileData.fileUrl);
+          }
+        }
+      } catch (err) {
+        toast.error(err.message || 'Failed to load note');
+        navigate('/marketplace');
+      } finally {
+        setIsLoading(false);
+      }
+    }
     fetchNote();
-  }, [fetchNote]);
+  }, [id, request, navigate]);
+
+  const handleQuestionAnswered = ({ question, answer }) => {
+    setConversation((prev) => [...prev, { question, answer }]);
+  };
 
   const handlePurchase = async () => {
-    if (!user) {
-      navigate('/auth/login');
-      return;
-    }
+    setIsPurchasing(true);
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/notes/${id}/purchase`, {
+      await request(`${import.meta.env.VITE_API_URL}/api/notes/${id}/purchase`, {
         method: 'POST',
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
       });
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.error || 'Purchase failed');
+      toast.success('Note purchased successfully');
+      const fileResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/notes/${id}/file`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      });
+      if (fileResponse.ok) {
+        const fileData = await fileResponse.json();
+        setFileUrl(fileData.fileUrl);
+        setNote({ ...note, hasAccess: true });
       }
-      setNote({ ...note, hasAccess: true });
-      await fetchFileUrl();
-      await refreshUser(); // Refresh user data to update credits in UI
     } catch (err) {
-      setError(err.message);
+      // Error handled by useApi
+    } finally {
+      setIsPurchasing(false);
     }
   };
 
-  if (loading) return <div className="text-center py-20">Loading...</div>;
-  if (error) return <div className="text-center py-20 text-red-600">Error: {error}</div>;
-  if (!note) return <div className="text-center py-20">Note not found</div>;
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(fileUrl);
+    toast.success('IPFS link copied to clipboard!');
+  };
+
+  const isPdf = fileUrl.toLowerCase().endsWith('.pdf');
+
+  if (isLoading) {
+    return (
+      <div className="text-center mt-8">
+        <span className="loading-spinner inline-block"></span>
+        <p className="mt-2 text-gray-600">Loading note...</p>
+      </div>
+    );
+  }
+
+  if (!note) {
+    return <div className="text-center mt-8 text-red-600">Note not found</div>;
+  }
 
   return (
-    <div className="max-w-4xl mx-auto py-8">
+    <div className="container mx-auto p-4 max-w-4xl">
       <h1 className="text-3xl font-bold mb-4">{note.title}</h1>
-      <p className="text-gray-600 mb-4">{note.description || 'No description available'}</p>
-      <p className="mb-4">Uploaded by: {note.uploader?.name || 'Unknown'}</p>
-      <p className="mb-4">Price: {note.price} credits</p>
-      <p className="mb-4">Your Credits: {user?.credits ?? 0}</p>
-      {fileUrl ? (
-        <div>
-          <p className="mb-2">Preview:</p>
-          <SecureNoteViewer fileUrl={fileUrl} />
-          <p className="mt-4">IPFS Link:</p>
-          <a
-            href={fileUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-blue-600 hover:underline break-all"
+      <div className="bg-white p-6 rounded-lg shadow-md mb-6">
+        <p className="text-gray-700 mb-2">{note.description || 'No description available'}</p>
+        <p className="text-gray-600">Uploaded by: {note.uploader?.name || 'Unknown'}</p>
+        <p className="text-gray-600">Price: {note.price} CNX Token</p>
+        {note.hasAccess && fileUrl ? (
+          <div className="mt-4">
+            <h2 className="text-xl font-semibold mb-2">Note Content</h2>
+            {isPdf && !pdfLoadFailed ? (
+              <SecureNoteViewer
+                fileUrl={fileUrl}
+                noteId={id}
+                onLoadError={() => setPdfLoadFailed(true)}
+              />
+            ) : (
+              <div className="flex items-center space-x-2">
+                <a
+                  href={fileUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 truncate max-w-[300px] hover:underline"
+                >
+                  {fileUrl}
+                </a>
+                <button
+                  onClick={handleCopyLink}
+                  className="text-sm bg-blue-100 text-blue-700 py-1 px-2 rounded hover:bg-blue-200"
+                >
+                  Copy IPFS Link
+                </button>
+              </div>
+            )}
+          </div>
+        ) : (
+          <button
+            onClick={handlePurchase}
+            className="bg-green-600 text-white py-2 px-4 rounded-md mt-2 hover:bg-green-700 disabled:bg-green-300"
+            disabled={isPurchasing}
           >
-            {fileUrl}
-          </a>
+            {isPurchasing ? (
+              <span className="loading-spinner inline-block h-5 w-5"></span>
+            ) : (
+              'Purchase Note'
+            )}
+          </button>
+        )}
+      </div>
+
+      <div className="mb-6">
+        <h2 className="text-2xl font-semibold mb-2">Ask a Question</h2>
+        <QuestionForm noteId={id} onQuestionAnswered={handleQuestionAnswered} />
+      </div>
+
+      {conversation.length > 0 && (
+        <div>
+          <h2 className="text-2xl font-semibold mb-2">Conversation History</h2>
+          <div className="space-y-4">
+            {conversation.map((item, index) => (
+              <div key={index} className="p-4 bg-gray-50 rounded-lg">
+                <p className="font-medium text-gray-800">Q: {item.question}</p>
+                <p className="text-gray-700">A: {item.answer}</p>
+              </div>
+            ))}
+          </div>
         </div>
-      ) : note.hasAccess ? (
-        <p className="text-green-600">You have access to this note. The preview will load shortly.</p>
-      ) : (
-        <button
-          onClick={handlePurchase}
-          className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
-        >
-          Purchase Note
-        </button>
       )}
     </div>
   );
 }
+
+NoteDetails.propTypes = {};

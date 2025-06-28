@@ -1,8 +1,10 @@
-// campus-notes-vite/src/main.jsx
+// campusnotes-react-frontend/src/main.jsx
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import Layout from './components/Layout';
 import App from './App';
 import Login from './pages/auth/Login';
@@ -13,6 +15,7 @@ import Dashboard from './pages/Dashboard';
 import Marketplace from './pages/Marketplace';
 import NoteDetails from './pages/notes/NoteDetails';
 import Upload from './pages/Upload';
+import Subscribe from './pages/Subscribe';
 import './index.css';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
@@ -30,8 +33,10 @@ ReactDOM.createRoot(document.getElementById('root')).render(
             <Route path="/marketplace" element={<Marketplace />} />
             <Route path="/notes/:id" element={<NoteDetails />} />
             <Route path="/upload" element={<Upload />} />
+            <Route path="/subscribe" element={<Subscribe />} />
           </Route>
         </Routes>
+        <ToastContainer position="top-right" autoClose={3000} />
       </BrowserRouter>
     </AuthProvider>
   </React.StrictMode>

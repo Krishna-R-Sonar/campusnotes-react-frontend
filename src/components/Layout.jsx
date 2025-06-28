@@ -1,8 +1,9 @@
-// campus-notes-vite/src/components/Layout.jsx
+// campusnotes-react-frontend/src/components/Layout.jsx
 import React from 'react';
 import { Outlet } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import AuthControls from './AuthControls';
+import CNXToken from './CNXToken';
 
 export default function Layout() {
   return (
@@ -14,6 +15,8 @@ export default function Layout() {
             <Link to="/marketplace" className="hover:text-blue-600">Marketplace</Link>
             <Link to="/dashboard" className="hover:text-blue-600">Dashboard</Link>
             <Link to="/upload" className="hover:text-blue-600">Upload</Link>
+            <Link to="/subscribe" className="hover:text-blue-600">Subscribe</Link>
+            <CNXToken />
             <AuthControls />
           </div>
         </div>

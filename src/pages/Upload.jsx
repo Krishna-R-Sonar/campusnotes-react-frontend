@@ -1,4 +1,4 @@
-// campus-notes-vite/src/pages/Upload.jsx
+// campusnotes-react-frontend/src/pages/Upload.jsx
 import NoteUploadForm from '../components/NoteUploadForm';
 import { useAuth } from '../context/AuthContext';
 
